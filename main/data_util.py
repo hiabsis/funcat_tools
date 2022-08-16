@@ -72,9 +72,9 @@ def get_stock_codes(date=None):
     return stock_df['code'].tolist()
 
 
-def download_data(stock_codes, frequency='d', from_date='1990-12-19',
-                  to_date=datetime.date.today().strftime('%Y-%m-%d'),
-                  adjustflag='3'):
+def download_bao_stock_data(stock_codes, frequency='d', from_date='1990-12-19',
+                            to_date=datetime.date.today().strftime('%Y-%m-%d'),
+                            adjustflag='3'):
     """
     下载指定日期内，指定股票的日线数据
 
@@ -158,7 +158,7 @@ def update_date(frequencys=None):
         frequencys = ['d', '5', '15', '30']
     stock_codes = get_stock_codes()
     for frequency in frequencys:
-        download_data(stock_codes, frequency=frequency)
+        download_bao_stock_data(stock_codes, frequency=frequency)
 
 
 def load_generic_csv_data(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
@@ -196,8 +196,8 @@ def load_generic_csv_data(stock_code: str, frequency: str, start_time=datetime.d
     )
 
 
-def get_bao_stock_day_data(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
-                           end_time=datetime.datetime.now(), dformat='%Y-%m-%d %H:%M:%S'):
+def load_bao_stock_day__generic_csv(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
+                                    end_time=datetime.datetime.now(), dformat='%Y-%m-%d %H:%M:%S'):
     """
     按照generic的格式加载数据
 
@@ -238,6 +238,44 @@ def get_bao_stock_day_data(stock_code: str, frequency: str, start_time=datetime.
     )
 
 
+def load_bao_stock_minute__generic_csv(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
+                                       end_time=datetime.datetime.now(), dformat='%Y-%m-%d %H:%M:%S'):
+    """
+    按照generic的格式加载数据
+
+    :return:
+    """
+    if frequency == 'd':
+        timeframe = bt.TimeFrame.Days
+    else:
+        timeframe = bt.TimeFrame.Minutes
+    # 文件名称
+    file_path = get_stock_path(stock_code, frequency)
+    df = pd.read_csv(
+        file_path,
+        skiprows=0,  # 不忽略行
+        header=0,  # 列头在0行
+    )
+    return cm.BaoStockDayGenericCSDataExtend(
+        dataname=file_path,
+        nullvalue=0.0,
+        fromdate=start_time,
+        todate=end_time,
+        dtformat=dformat,
+        timeframe=timeframe,
+        datetime=get_columns_index(df, 'time'),
+        high=get_columns_index(df, 'high'),
+        low=get_columns_index(df, 'low'),
+        open=get_columns_index(df, 'open'),
+        close=get_columns_index(df, 'close'),
+        volume=get_columns_index(df, 'volume'),
+        amount=get_columns_index(df, 'amount'),
+        adjustflag=get_columns_index(df, 'adjustflag'),
+        plot=False,
+        openinterest=-1
+    )
+
+
 def get_columns_index(data, column_name):
     """
     获取表头所在位置
@@ -257,4 +295,4 @@ def get_columns_index(data, column_name):
 
 
 if __name__ == '__main__':
-    download_data(['sh.600000'], frequency='d')
+    download_bao_stock_data(['sh.600000'], frequency='d')

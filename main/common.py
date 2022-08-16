@@ -46,6 +46,17 @@ class BaoStockDayGenericCSDataExtend(bt.feeds.GenericCSVData):
               ('isST', 3),)  # 是否ST	1是，0否
 
 
+class BaoStockMGenericCSDataExtend(bt.feeds.GenericCSVData):
+    """
+    分钟级别的数据
+    """
+    # 增加线
+    lines = ("amount", 'adjustflag', 'turn', 'tradestatus', 'pctChg', 'isST')
+    params = (('amount', 0),  # 成交额
+              ('adjustflag', 0),  # 是否复权
+              )
+
+
 def get_default_cerebro(startcash=100000):
     """
     获取默认的控制器

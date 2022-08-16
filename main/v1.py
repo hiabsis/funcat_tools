@@ -18,6 +18,7 @@ MIN_PERIOD = 30
 # 股票池最大股票数目
 MAX_STOCK_NUM = 100
 
+
 def bar_size(datapath, fromdate, todate):
     """
     统计回测周期内K线数量
@@ -34,10 +35,24 @@ def bar_size(datapath, fromdate, todate):
 def _feeds_data(cerebro: bt.Cerebro, fromdate=datetime.datetime(2022, 1, 1), todate=datetime.date.today()):
     # 获取股票代码
     stocks = data_util.get_stock_codes()
-    # 日线级别股票代码的路径
+    # 日线级别股票数据路径
     day_k_lines_paths = list()
     for i in range(MAX_STOCK_NUM):
         day_k_lines_paths.append(data_util.get_stock_path(stocks[i], 'd'))
+    # 5分钟级别股票数据路径
+    five_m_k_lines_paths = list()
+    for i in range(MAX_STOCK_NUM):
+        five_m_k_lines_paths.append(data_util.get_stock_path(stocks[i], '5'))
+
+    # 加载数据
+    for file_path in five_m_k_lines_paths:
+        # 股票名称
+        stock_code = file_path[-13:-4]
+        # 数据名称
+        data_name = stock_code + "_1d"
+        # 读取数据
+        data = data_util.load_bao_stock_day__generic_csv(stock_code, 'd')
+        cerebro.adddata(data, name=data_name)
     # 加载数据
     for file_path in day_k_lines_paths:
         # 股票名称
@@ -47,7 +62,6 @@ def _feeds_data(cerebro: bt.Cerebro, fromdate=datetime.datetime(2022, 1, 1), tod
         # 读取数据
         data = data_util.load_generic_csv_data(stock_code, 'd')
         cerebro.adddata(data, name=data_name)
-        return
     return cerebro
 
 
