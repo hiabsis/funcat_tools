@@ -161,7 +161,7 @@ def update_date(frequencys=None):
         download_bao_stock_data(stock_codes, frequency=frequency)
 
 
-def load_generic_csv_data(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
+def _load_generic_csv_data(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
                           end_time=datetime.datetime.now(), dformat='%Y-%m-%d %H:%M:%S'):
     """
     按照generic的格式加载数据
@@ -196,8 +196,19 @@ def load_generic_csv_data(stock_code: str, frequency: str, start_time=datetime.d
     )
 
 
-def load_bao_stock_day__generic_csv(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
-                                    end_time=datetime.datetime.now(), dformat='%Y-%m-%d %H:%M:%S'):
+def load_local_csv_data(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
+                        end_time=datetime.datetime.now(), dformat='%Y-%m-%d %H:%M:%S', resource='bao_stock'):
+    if resource == 'bao_stock':
+        if frequency == 'd':
+            return _load_bao_stock_day_generic_csv(stock_code, frequency, start_time, end_time, dformat)
+        else:
+            return _load_bao_stock_day_generic_csv(stock_code, frequency, start_time, end_time, dformat)
+    else:
+        return _load_bao_stock_day_generic_csv(stock_code, frequency, start_time, end_time, dformat)
+
+
+def _load_bao_stock_day_generic_csv(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
+                                   end_time=datetime.datetime.now(), dformat='%Y-%m-%d %H:%M:%S'):
     """
     按照generic的格式加载数据
 
@@ -238,7 +249,7 @@ def load_bao_stock_day__generic_csv(stock_code: str, frequency: str, start_time=
     )
 
 
-def load_bao_stock_minute__generic_csv(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
+def _load_bao_stock_minute__generic_csv(stock_code: str, frequency: str, start_time=datetime.datetime(2021, 1, 1),
                                        end_time=datetime.datetime.now(), dformat='%Y-%m-%d %H:%M:%S'):
     """
     按照generic的格式加载数据
@@ -295,4 +306,4 @@ def get_columns_index(data, column_name):
 
 
 if __name__ == '__main__':
-    download_bao_stock_data(['sh.600000'], frequency='d')
+    download_bao_stock_data(['sh.600000'], frequency='5')

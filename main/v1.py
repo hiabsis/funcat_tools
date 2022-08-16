@@ -16,7 +16,7 @@ from main.stategy import PandasDataExtend
 
 MIN_PERIOD = 30
 # 股票池最大股票数目
-MAX_STOCK_NUM = 100
+MAX_STOCK_NUM = 1
 
 
 def bar_size(datapath, fromdate, todate):
@@ -51,25 +51,27 @@ def _feeds_data(cerebro: bt.Cerebro, fromdate=datetime.datetime(2022, 1, 1), tod
         # 数据名称
         data_name = stock_code + "_1d"
         # 读取数据
-        data = data_util.load_bao_stock_day__generic_csv(stock_code, 'd')
+        data = data_util.load_local_csv_data(stock_code, 'd', resource='bao_stock')
         cerebro.adddata(data, name=data_name)
     # 加载数据
     for file_path in day_k_lines_paths:
         # 股票名称
         stock_code = file_path[-13:-4]
         # 数据名称
-        data_name = stock_code + "_1d"
+        data_name = stock_code + "_5m"
         # 读取数据
-        data = data_util.load_generic_csv_data(stock_code, 'd')
+        data = data_util.load_local_csv_data(stock_code, '5', resource='bao_stock')
         cerebro.adddata(data, name=data_name)
     return cerebro
 
 
-def run():
+def run(params=None):
     # 创建控制器
     cerebro = cm.get_default_cerebro()
     # 填数据
     _feeds_data(cerebro)
+    # 添加策略
+    cerebro.addstrategy(Strategy, kwargs=params)
     # 运行
     cerebro.run()
     # 显示
@@ -81,8 +83,8 @@ class Strategy(bt.Strategy):
 
     """
     params = dict(
-        rebal_monthday=[1],  # 每月1日执行再平衡
-        num_volume=100,  # 成交量取前100名
+        # rebal_monthday=[1],  # 每月1日执行再平衡
+        # num_volume=100,  # 成交量取前100名
         period=5,
     )
 
@@ -92,26 +94,29 @@ class Strategy(bt.Strategy):
         dt = dt or self.data0.datetime.date(0)
         print('%s, %s' % (dt.isoformat(), txt))
 
-    def __init__(self):
-
-        self.ranks = None
-        self.currDate = None
-        self.lastRanks = []  # 上次交易股票的列表
-        # 0号是指数，不进入选股池，从1号往后进入股票池
-        self.stocks = self.datas[1:]
-        # 记录以往订单，在再平衡日要全部取消未成交的订单
-        self.order_list = []
-
-        # 移动平均线指标
-        self.sma = {d: bt.ind.SMA(d, period=self.p.period) for d in self.stocks}
-
-        # 定时器
-        self.add_timer(
-            when=bt.Timer.SESSION_START,
-            monthdays=self.p.rebal_monthday,  # 每月1号触发再平衡
-            monthcarry=True,  # 若再平衡日不是交易日，则顺延触发notify_timer
-
-        )
+    def __init__(self, **kwargs):
+        print(self.p.period)
+        print(kwargs)
+        pass
+        #
+        # self.ranks = None
+        # self.currDate = None
+        # self.lastRanks = []  # 上次交易股票的列表
+        # # 0号是指数，不进入选股池，从1号往后进入股票池
+        # self.stocks = self.datas[1:]
+        # # 记录以往订单，在再平衡日要全部取消未成交的订单
+        # self.order_list = []
+        #
+        # # 移动平均线指标
+        # self.sma = {d: bt.ind.SMA(d, period=self.p.period) for d in self.stocks}
+        #
+        # # 定时器
+        # self.add_timer(
+        #     when=bt.Timer.SESSION_START,
+        #     monthdays=self.p.rebal_monthday,  # 每月1号触发再平衡
+        #     monthcarry=True,  # 若再平衡日不是交易日，则顺延触发notify_timer
+        #
+        # )
 
     def notify_timer(self, timer, when, *args, **kwargs):
         # 只在5，9，11月的1号执行再平衡
@@ -228,4 +233,7 @@ class Strategy(bt.Strategy):
 
 
 if __name__ == '__main__':
-    run()
+    params = dict(
+        period=10
+    )
+    run(params)
