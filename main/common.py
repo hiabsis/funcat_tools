@@ -32,7 +32,7 @@ class StampDutyCommissionScheme(bt.CommInfoBase):
             return 0  # just in case for some reason the size is 0.
 
 
-class BaoStockDayPandasDataExtend(bt.feeds.PandasData):
+class BaoStockDayGenericCSDataExtend(bt.feeds.GenericCSVData):
     """
     日线级别的数据
     """
@@ -44,8 +44,6 @@ class BaoStockDayPandasDataExtend(bt.feeds.PandasData):
               ('tradestatus', 0),  # 交易状态 1：正常交易 0：停牌
               ('pctChg', 0),  # 涨跌幅
               ('isST', 3),)  # 是否ST	1是，0否
-
-
 
 
 def get_default_cerebro(startcash=100000):
@@ -64,5 +62,3 @@ def get_default_cerebro(startcash=100000):
     comminfo = StampDutyCommissionScheme(stamp_duty=0.001, commission=0.001)
     cerebro.broker.addcommissioninfo(comminfo)
     return cerebro
-
-
