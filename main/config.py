@@ -6,3 +6,5 @@
 DATA_ROOT_DIR = "D:\\work\\git\\funcat_tools\\static"
 # tushare的授权码
 TUSHARE_TOKEN = "******"
+
+

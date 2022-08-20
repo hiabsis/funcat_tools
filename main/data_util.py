@@ -9,7 +9,6 @@ import baostock as bs
 import datetime
 import sys
 
-import numpy
 import pandas
 import pandas as pd
 import backtrader as bt
@@ -85,11 +84,58 @@ def get_stock_codes(date=None, resource='baostock'):
     """
     if resource == 'baostock':
         return get_stock_codes_from_baostock(date)
-    elif resource == 'tushare':
-        return get_stock_codes_from_tushare()
 
 
-def get_stock_codes_from_tushare():
+def get_stock_codes(date=None, resource='baostock'):
+    """
+    获取沪深A股
+
+    若参数date为空，则返回最近1个交易日的A股代码列表
+    若参数date不为空，且为交易日，则返回date当日的A股代码列表
+    若参数date不为空，但不为交易日，则打印提示非交易日信息，程序退出
+
+    :param resource: 数据源
+    :param date: 日期
+    :return: A股代码的列表
+    """
+    codes_path = DATA_ROOT_DIR + "\\code\\baostock\\code.json"
+    if os.path.exists(codes_path):
+        return read_json(codes_path)
+        # 登录baostock
+    bs.login()
+
+    # 从BaoStock查询股票数据
+    stock_df = bs.query_all_stock(date).get_data()
+
+    # 如果获取数据长度为0，表示日期date非交易日
+    if 0 == len(stock_df):
+
+        # 如果设置了参数date，则打印信息提示date为非交易日
+        if date is not None:
+            print('当前选择日期为非交易日或尚无交易数据，请设置date为历史某交易日日期')
+            sys.exit(0)
+
+        # 未设置参数date，则向历史查找最近的交易日，当获取股票数据长度非0时，即找到最近交易日
+        delta = 1
+        while 0 == len(stock_df):
+            stock_df = bs.query_all_stock(datetime.date.today() - datetime.timedelta(days=delta)).get_data()
+            delta += 1
+
+    # 注销登录
+    bs.logout()
+
+    # 筛选股票数据，000001 -10000 300001 400000 600000 700000
+    codes = stock_df['code'].tolist()
+    for code in codes:
+        t_code = code.split('.')
+        if 300001 > int(t_code[1]) > 100000 or 600001 > int(t_code[1]) > 500000 or int(t_code[1]) > 700000:
+            codes.remove(code)
+    write_json(DATA_ROOT_DIR + "\\code\\baostock", 'code.json', codes)
+    # 返回股票列表
+    return codes
+
+
+def get_codes_from_tushare():
     """
     获取tushare的股票列表
     :return:
@@ -534,7 +580,7 @@ def get_stock_index_from_tu_share(stock_code='000001.SH', start_date=None, end_d
 
 
 if __name__ == '__main__':
-    update_date(frequencys=['d'])
+    get_stock_codes()
 # print(get_stock_codes(resource='tushare'))
 # pro = ts.pro_api(TUSHARE_TOKEN)
 #

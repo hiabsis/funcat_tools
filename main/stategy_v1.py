@@ -14,15 +14,13 @@ import pandas as pd
 
 MIN_PERIOD = 30
 # 股票池最大股票数目
-MAX_STOCK_NUM = 10
+MAX_STOCK_NUM = 30
 # 最大股票价格
-MAX_STOCK_PRICE = 30
+MAX_STOCK_PRICE = 3000
 # 最大流通量
-MAX_AMOUNT = 100000000
+MAX_AMOUNT = 10000000000000000000
 # 测试股票开始时间
 BACKTRADER_START_TIME = '2021-01-01'
-#
-# 测试股票结束时间时间
 # 默认是今天
 BACKTRADER_END_TIME = None
 
@@ -48,6 +46,8 @@ class Strategy(bt.Strategy):
 
         # 下单的股票
         self.rank = []
+        # 订单
+        self.orders = {}
         # 回测股票
         for stock in self.datas:
             print('回测股票', stock._name)
@@ -77,18 +77,8 @@ class Strategy(bt.Strategy):
 
     def next(self):
 
-        # 开盘检查是否有需要平仓的股票
-        for stock in self.rank:
-            position = int(stock.txd_filter_position[-1])
-            if stock.close[-1] < stock.close[-position]:
-                self.close(data=stock)
-                self.rank.remove(stock)
-        for stock in self.datas:
-            # 满足选股条件和二添加待选股票
-            if stock.filter[-1] == 1 and stock.txd_filter[-2] == 1:
-                if stock not in self.rank:
-                    self.rank.append(stock)
-                    self.to_buy(stock)
+
+        pass
 
     # 记录交易收益情况
     def notify_trade(self, trade):
@@ -110,8 +100,10 @@ def _calculate_index_one(stock_codes, frequency):
         index = []
         for i, row in df.iterrows():
             # 流通盘小于最大流通盘量
-            volume = row.amount / row.turn
-
+            if row.turn == 0:
+                volume = 0
+            else:
+                volume = 0
             if row.close > MAX_STOCK_PRICE \
                     or row.tradestatus == 1 \
                     or row.tradestatus == 1 \
@@ -132,6 +124,7 @@ def tdx_filter(close, openp, high, low, volume, n=1):
     xg = []
     # 位置
     position = []
+    # 计算指标值
     for i in range(len(close)):
         xg.append(1)
         position.append(10)
@@ -283,23 +276,24 @@ def run(params=None):
     # 创建控制器
     cerebro = cm.get_default_cerebro()
     # 获取股票代码
-    stocks = data_util.get_stock_codes()
+    stocks = data_util.get_stock_codes()[:MAX_STOCK_NUM]
     # 时间级别
     frequencys = ['d']
     # 更新数据
-    data_util.update_date(stocks=stocks[:MAX_STOCK_NUM], frequencys=frequencys)
+    data_util.update_date(stocks=stocks, frequencys=frequencys)
     # 数据预处理 计算指标一
-    _calculate_index_one(stocks[:MAX_STOCK_NUM], 'd')
+    _calculate_index_one(stocks, 'd')
     # 数据预处理 计算指标二
-    _calculate_index_second(stocks[:MAX_STOCK_NUM], 'd')
+    _calculate_index_second(stocks, 'd')
+
     # 填数据
-    _feeds_data(cerebro, stocks[:MAX_STOCK_NUM], frequencys)
+    _feeds_data(cerebro, stocks, frequencys)
     # 添加数据
     cerebro.addstrategy(Strategy, kwargs=params)
     # 运行
     cerebro.run()
-    # print(type(cerebro))
-    # 显示
+    # 财务分析
+    cm.pyfolio_analyze_plot(cerebro)
 
     return cerebro
 
@@ -307,6 +301,3 @@ def run(params=None):
 if __name__ == '__main__':
     # 运行策略
     cerebro = run()
-    cm.simple_analyze(cerebro)
-    cerebro.plot()
-    # 分析策略

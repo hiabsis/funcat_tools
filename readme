@@ -1,0 +1,41 @@
+（1）获取最新流通股本 get_last_volume()
+
+（2）获取指数成份股 get_sector()
+
+（3）获取行业成份股 get_industry()
+
+（4）获取板块成份股 get_stock_list_in_sector()
+
+（5）获取某只股票在某指数中的绝对权重 get_weight_in_index()
+
+（6）获取合约乘数 get_contract_multiplier()
+
+（7）获取无风险利率 get_risk_free_rate()
+
+（8）获取财务数据 get_financial_data()
+
+（9）获取历史行情数据 get_market_data()
+
+（10）获取除权除息日和复权因子 get_divid_factors()
+
+（11）获取当前期货主力合约 get_main_contract()
+
+（12）将毫秒时间转换成日期时间 timetag_to_date_time()
+
+（13）获取指定个股 / 合约 / 指数的 K 线（交易日）列表 get_trading_dates()
+
+（14）获取多因子数据 get_factor_data()
+
+（15）获取指定期权列表 get_option_list()
+
+（16）获取市场已退市合约 get_his_contract_list()
+
+（17）根据代码获取合约详细信息 get_instrumentdetail()
+
+（18）获取指定期权品种的详细信息 get_option_detail_data()
+
+（19）获取指定期权品种的实时隐含波动率 get_option_iv()
+
+（20）基于BS模型计算欧式期权理论价格 bsm_price()
+
+（21）基于BS模型计算欧式期权隐含波动率 bsm_iv()
