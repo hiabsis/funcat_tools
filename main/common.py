@@ -1,6 +1,9 @@
 """
 公共部分代码
 """
+import os
+import webbrowser
+
 import backtrader as bt
 
 import backtrader
@@ -8,11 +11,15 @@ import pandas
 import pyfolio
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
+import quantstats
+
+import config
 
 
 def simple_analyze(cerebro, name="DEFAULT_NAME"):
     """
     对策略分析
+    :param cerebro:
     :param name:
     :return:
     """
@@ -78,6 +85,48 @@ def simple_analyze(cerebro, name="DEFAULT_NAME"):
     plt.legend(h1 + h2, l1 + l2, fontsize=12, loc='upper left', ncol=1)
     fig.tight_layout()  # 规整排版
     plt.show()
+
+
+def get_default_strategy_name(resource):
+    """
+    获取默认的策略名称
+    :param strategy: 策略类
+    :param resource: 数据源
+    :return:
+    """
+    return str(resource._dataname).split('\\')[-1].split('.')[0]
+
+
+def pyfolio_analyze_plot(cerebro, title='Returns_Sentiment', output=None,
+                         is_show=True):
+    """
+    可视化分析 财务数据
+    :param cerebro:
+    :param output:
+    :param title:
+    :param is_show:
+    :return:
+    """
+
+    cerebro.addanalyzer(bt.analyzers.PyFolio, _name='pyfolio')
+    back = cerebro.run()
+
+    portfolio = back[0].analyzers.getbyname('pyfolio')
+    returns, positions, transactions, gross_lev = portfolio.get_pf_items()
+    returns.index = returns.index.tz_convert(None)
+    if output is None:
+        file_name = title
+        output = config.DATA_ROOT_DIR + "\\pyfolio"
+        if not os.path.exists(output):
+            os.makedirs(output)
+        output = output + "\\" + file_name + ".html"
+    report_path = config.DATA_ROOT_DIR + "\\pyfolio\\html\\report.html"
+    if not os.path.exists(report_path):
+        report_path = None
+    quantstats.reports.html(returns, output=output, template_path=report_path, download_filename=output, title=title)
+    if is_show:
+        webbrowser.open(output)
+    return output
 
 
 class StampDutyCommissionScheme(bt.CommInfoBase):
